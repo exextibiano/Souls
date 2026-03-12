@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ex Tibiano - Soul Points Calculator</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --bg-secondary: #111827;
+      --panel: rgba(17, 24, 39, 0.92);
+      --panel-strong: rgba(15, 23, 42, 0.98);
+      --panel-soft: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text: #f3f6fb;
+      --text-soft: #a8b3c7;
+      --text-muted: #7d8798;
+      --accent: #5eead4;
+      --accent-strong: #2dd4bf;
+      --accent-soft: rgba(94, 234, 212, 0.14);
+      --warning-soft: rgba(245, 158, 11, 0.14);
+      --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.22);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --transition: 180ms ease;
+      --max-width: 1040px;
+      --font-main: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-main);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 25%),
+        linear-gradient(180deg, #071018 0%, #0b0f17 45%, #0b111b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: var(--max-width);
+    }
+
+    .calculator {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(11, 15, 23, 0.96));
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow-lg);
+      padding: 28px;
+    }
+
+    .calculator::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(135deg, rgba(94, 234, 212, 0.07), transparent 25%, transparent 70%, rgba(94, 234, 212, 0.03)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 25%);
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .brand-block {
+      max-width: 720px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(94, 234, 212, 0.18);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 2.7rem);
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 12px 0 0;
+      max-width: 640px;
+      color: var(--text-soft);
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    .meta-chip {
+      align-self: flex-start;
+      min-width: 132px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+    }
+
+    .meta-chip-label {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .meta-chip-value {
+      font-size: 0.98rem;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .content-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .panel-header {
+      padding: 20px 20px 0;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-text {
+      margin: 8px 0 0;
+      color: var(--text-soft);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    .form-area {
+      padding: 18px 20px 20px;
+    }
+
+    .input-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--text);
+      font-size: 0.94rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .field-hint {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input,
+    .select {
+      width: 100%;
+      min-height: 56px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 16px 16px;
+      outline: none;
+      transition: border-color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
+      appearance: none;
+    }
+
+    .input::placeholder {
+      color: #677385;
+      font-weight: 500;
+    }
+
+    .input:focus,
+    .select:focus {
+      border-color: rgba(94, 234, 212, 0.45);
+      background: rgba(255, 255, 255, 0.045);
+      box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.09);
+    }
+
+    .field-note {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      margin-top: 2px;
+    }
+
+    .mini-rule {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .results-area {
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .results-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 4px;
+    }
+
+    .results-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .results-status {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .result-card {
+      position: relative;
+      min-height: 148px;
+      padding: 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .result-card.featured {
+      border-color: rgba(94, 234, 212, 0.18);
+      background:
+        linear-gradient(180deg, rgba(94, 234, 212, 0.08), rgba(255, 255, 255, 0.02)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+    }
+
+    .result-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -40px auto;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.025);
+      filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .result-label {
+      display: block;
+      color: var(--text-soft);
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+    }
+
+    .result-value {
+      font-size: clamp(1.45rem, 3vw, 2rem);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .result-subtext {
+      margin-top: 10px;
+      color: var(--text-muted);
+      font-size: 0.83rem;
+      line-height: 1.45;
+    }
+
+    .empty-state {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px dashed var(--border-strong);
+      background: rgba(255, 255, 255, 0.02);
+      text-align: center;
+    }
+
+    .empty-state strong {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .empty-state span {
+      color: var(--text-soft);
+      font-size: 0.92rem;
+      line-height: 1.6;
+      max-width: 420px;
+    }
+
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding-top: 2px;
+    }
+
+    .summary-box {
+      padding: 14px 14px 13px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+    }
+
+    .summary-label {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .summary-value {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    @media (max-width: 960px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 14px;
+        align-items: stretch;
+      }
+
+      .calculator {
+        padding: 18px;
+        border-radius: 22px;
+      }
+
+      .topbar {
+        margin-bottom: 20px;
+      }
+
+      .subtitle {
+        font-size: 0.94rem;
+        line-height: 1.55;
+      }
+
+      .panel-header,
+      .form-area,
+      .results-area {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .panel-header {
+        padding-top: 16px;
+      }
+
+      .result-grid,
+      .summary-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .result-card {
+        min-height: 132px;
+      }
+
+      .input,
+      .select {
+        min-height: 54px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="calculator">
+      <div class="topbar">
+        <div class="brand-block">
+          <div class="eyebrow">Ex Tibiano • Soul Tool</div>
+          <h1 class="title">Soul Points Calculator</h1>
+          <p class="subtitle">
+            Veja em segundos quanto falta para a soul encher e quantas magias ou runas você consegue produzir agora, por hora e por dia.
+          </p>
+        </div>
+
+        <div class="meta-chip">
+          <span class="meta-chip-label">Regra base</span>
+          <span class="meta-chip-value">1 soul a cada 15s</span>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Dados da calculadora</h2>
+            <p class="panel-text">
+              Preencha os valores e o resultado atualiza sozinho, sem botão.
+            </p>
+          </div>
+
+          <div class="form-area">
+            <div class="input-stack">
+              <div class="field">
+                <div class="label-row">
+                  <label for="spellName">Nome da magia/runa</label>
+                  <span class="field-hint">Opcional</span>
+                </div>
+                <div class="input-wrap">
+                  <input
+                    id="spellName"
+                    class="input"
+                    type="text"
+                    placeholder="Ex: SD, UH, GFB..."
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label-row">
+                  <label for="currentSoul">Soul atual</label>
+                </div>
+                <div class="input-wrap">
+                  <input
+                    id="currentSoul"
+                    class="input"
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    step="1"
+                    placeholder="Ex: 80"
+                  />
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label-row">
+                  <label for="maxSoul">Soul máxima</label>
+                </div>
+                <div class="input-wrap">
+                  <input
+                    id="maxSoul"
+                    class="input"
+                    type="number"
+                    inputmode="numeric"
+                    min="1"
+                    step="1"
+                    placeholder="Ex: 100"
+                  />
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label-row">
+                  <label for="soulCost">Custo de soul por magia/runa</label>
+                </div>
+                <div class="input-wrap">
+                  <input
+                    id="soulCost"
+                    class="input"
+                    type="number"
+                    inputmode="numeric"
+                    min="1"
+                    step="1"
+                    placeholder="Ex: 3"
+                  />
+                </div>
+                <div class="field-note">
+                  Use o valor inteiro de soul gasto em cada uso.
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-rule">
+              A calculadora usa a taxa fixa de recuperação de <strong>1 soul point a cada 15 segundos</strong>.
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="results-area">
+            <div class="results-top">
+              <h2 class="results-title">Resultados</h2>
+              <div class="results-status" id="statusText">Aguardando dados</div>
+            </div>
+
+            <div id="resultsContent">
+              <div class="empty-state">
+                <div>
+                  <strong>Preencha soul atual, soul máxima e custo.</strong>
+                  <span>
+                    Assim que os valores forem informados, os resultados aparecem aqui de forma automática.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const currentSoulInput = document.getElementById("currentSoul");
+    const maxSoulInput = document.getElementById("maxSoul");
+    const soulCostInput = document.getElementById("soulCost");
+    const spellNameInput = document.getElementById("spellName");
+    const resultsContent = document.getElementById("resultsContent");
+    const statusText = document.getElementById("statusText");
+
+    const SOUL_REGEN_SECONDS = 15;
+    const SOUL_PER_HOUR = 3600 / SOUL_REGEN_SECONDS; // 240
+    const SOUL_PER_DAY = 86400 / SOUL_REGEN_SECONDS; // 5760
+
+    function toPositiveInteger(value) {
+      if (value === "" || value === null || value === undefined) return null;
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) return null;
+      if (parsed < 0) return 0;
+      return Math.floor(parsed);
+    }
+
+    function formatWholeNumber(value) {
+      return new Intl.NumberFormat("pt-BR").format(value);
+    }
+
+    function formatDecimal(value, decimals = 2) {
+      return new Intl.NumberFormat("pt-BR", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals
+      }).format(value);
+    }
+
+    function formatDuration(totalSeconds) {
+      const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+
+      const days = Math.floor(safeSeconds / 86400);
+      const hours = Math.floor((safeSeconds % 86400) / 3600);
+      const minutes = Math.floor((safeSeconds % 3600) / 60);
+      const seconds = safeSeconds % 60;
+
+      const parts = [];
+
+      if (days > 0) parts.push(days + (days === 1 ? " dia" : " dias"));
+      if (hours > 0) parts.push(hours + "h");
+      if (minutes > 0) parts.push(minutes + "min");
+      if (seconds > 0 || parts.length === 0) parts.push(seconds + "s");
+
+      return parts.join(" ");
+    }
+
+    function buildResultCard(label, value, subtext, featured = false) {
+      return `
+        <article class="result-card ${featured ? "featured" : ""}">
+          <span class="result-label">${label}</span>
+          <div class="result-value">${value}</div>
+          <div class="result-subtext">${subtext}</div>
+        </article>
+      `;
+    }
+
+    function renderEmptyState(message = "Preencha soul atual, soul máxima e custo.") {
+      resultsContent.innerHTML = `
+        <div class="empty-state">
+          <div>
+            <strong>${message}</strong>
+            <span>Assim que os valores forem informados, os resultados aparecem aqui de forma automática.</span>
+          </div>
+        </div>
+      `;
+      statusText.textContent = "Aguardando dados";
+    }
+
+    function renderValidationState(message) {
+      resultsContent.innerHTML = `
+        <div class="empty-state">
+          <div>
+            <strong>Revise os valores informados.</strong>
+            <span>${message}</span>
+          </div>
+        </div>
+      `;
+      statusText.textContent = "Ajuste necessário";
+    }
+
+    function updateCalculator() {
+      const spellName = spellNameInput.value.trim();
+      const currentSoul = toPositiveInteger(currentSoulInput.value);
+      const maxSoul = toPositiveInteger(maxSoulInput.value);
+      const soulCost = toPositiveInteger(soulCostInput.value);
+
+      if (currentSoul === null || maxSoul === null || soulCost === null) {
+        renderEmptyState();
+        return;
+      }
+
+      if (maxSoul <= 0) {
+        renderValidationState("A soul máxima precisa ser maior que zero.");
+        return;
+      }
+
+      if (soulCost <= 0) {
+        renderValidationState("O custo por magia ou runa precisa ser maior que zero.");
+        return;
+      }
+
+      if (currentSoul > maxSoul) {
+        renderValidationState("A soul atual não pode ser maior que a soul máxima.");
+        return;
+      }
+
+      const soulMissing = maxSoul - currentSoul;
+      const secondsToFull = soulMissing * SOUL_REGEN_SECONDS;
+
+      const castsNow = Math.floor(currentSoul / soulCost);
+      const castsPerHour = Math.floor(SOUL_PER_HOUR / soulCost);
+      const castsPerDay = Math.floor(SOUL_PER_DAY / soulCost);
+
+      const itemLabel = spellName ? `de ${spellName}` : "possíveis";
+      const itemLabelShort = spellName ? spellName : "Magias/runas";
+
+      statusText.textContent = "Cálculo atualizado";
+
+      resultsContent.innerHTML = `
+        <div class="result-grid">
+          ${buildResultCard(
+            "Tempo para soul cheia",
+            soulMissing === 0 ? "Soul cheia" : formatDuration(secondsToFull),
+            soulMissing === 0
+              ? "Sua soul já está no valor máximo."
+              : `Faltam ${formatWholeNumber(soulMissing)} soul point(s) para completar.`,
+            true
+          )}
+
+          ${buildResultCard(
+            `${itemLabelShort} agora`,
+            formatWholeNumber(castsNow),
+            `Usos ${itemLabel} com a soul atual.`
+          )}
+
+          ${buildResultCard(
+            `${itemLabelShort} por hora`,
+            formatWholeNumber(castsPerHour),
+            `Baseado em ${formatWholeNumber(SOUL_PER_HOUR)} soul recuperadas por hora.`
+          )}
+
+          ${buildResultCard(
+            `${itemLabelShort} por dia`,
+            formatWholeNumber(castsPerDay),
+            `Baseado em ${formatWholeNumber(SOUL_PER_DAY)} soul recuperadas por dia.`
+          )}
+        </div>
+
+        <div class="summary-bar">
+          <div class="summary-box">
+            <span class="summary-label">Soul atual</span>
+            <span class="summary-value">${formatWholeNumber(currentSoul)}</span>
+          </div>
+
+          <div class="summary-box">
+            <span class="summary-label">Soul máxima</span>
+            <span class="summary-value">${formatWholeNumber(maxSoul)}</span>
+          </div>
+
+          <div class="summary-box">
+            <span class="summary-label">Custo por uso</span>
+            <span class="summary-value">${formatWholeNumber(soulCost)} soul</span>
+          </div>
+        </div>
+      `;
+    }
+
+    [currentSoulInput, maxSoulInput, soulCostInput, spellNameInput].forEach((input) => {
+      input.addEventListener("input", updateCalculator);
+    });
+
+    updateCalculator();
+  </script>
+</body>
+</html>
